@@ -1,0 +1,526 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      -->
+<title>PTES1T</title>
+<meta name="generator" content="MATLAB 24.2">
+<link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
+<meta name="DC.date" content="2025-06-13">
+<meta name="DC.source" content="PTES1T.m">
+<style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style>
+</head>
+<body>
+<div class="content">
+<h2>Contents</h2>
+<div>
+<ul>
+<li>
+<a href="#2">=== 1. 读取CSV数据 ===</a>
+</li>
+<li>
+<a href="#3">=== 2. 系统辨识 ===</a>
+</li>
+<li>
+<a href="#4">=== 3. 模型与原始数据对比 ===</a>
+</li>
+<li>
+<a href="#5">=== 4. 粒子群优化PID参数 ===</a>
+</li>
+<li>
+<a href="#6">=== 5. 闭环仿真（扰动在输出叠加） ===</a>
+</li>
+<li>
+<a href="#7">=== 6. 输出动态性能指标 ===</a>
+</li>
+<li>
+<a href="#8">=== 辅助函数 ===</a>
+</li>
+</ul>
+</div>
+<pre class="codeinput">clc; clear;
+</pre>
+<h2 id="2">=== 1. 读取CSV数据 ===</h2>
+<pre class="codeinput">data = readtable(<span class="string">'B.csv'</span>); <span class="comment">% 如果列名不正确，可使用 'VariableNames' 参数指定</span>
+
+<span class="comment">% 查看表格变量名，确认是否存在 'time' 列</span>
+disp(data.Properties.VariableNames);
+
+<span class="comment">% 如果列名正确，提取时间数据和温度数据</span>
+<span class="keyword">if</span> ismember(<span class="string">'time'</span>, data.Properties.VariableNames) &amp;&amp; ismember(<span class="string">'temperature'</span>, data.Properties.VariableNames)
+    time = data.time;
+    temp = data.temperature;
+<span class="keyword">else</span>
+    error(<span class="string">'表格中不存在预期的列名 "time" 或 "temperature"。请检查 CSV 文件内容。'</span>);
+<span class="keyword">end</span>
+</pre>
+<pre class="codeoutput">    {'time'}    {'temperature'}    {'volte'}
+
+</pre>
+<h2 id="3">=== 2. 系统辨识 ===</h2>
+<pre class="codeinput">u_step = 3.5;
+T0 = mean(temp(1:100));
+T_inf = mean(temp(end-50:end));
+K = (T_inf - T0) / u_step;
+
+T_63 = T0 + 0.632 * (T_inf - T0);
+idx_T = find(temp &gt;= T_63, 1);
+idx_L = find(temp &gt; T0 + 0.5, 1);
+T = time(idx_T) - time(idx_L);
+L = time(idx_L);
+
+G = tf(K, [T 1]);
+G_delay = pade(tf(1,1,<span class="string">'InputDelay'</span>,L), 3);  <span class="comment">% 更高阶Pade近似（3阶）</span>
+G_total = G * G_delay;
+
+disp(<span class="string">'一阶惯性+延迟系统辨识结果（3阶 Pade）：'</span>);
+G_total
+</pre>
+<pre class="codeoutput">一阶惯性+延迟系统辨识结果（3阶 Pade）：
+
+G_total =
+ 
+      -9.799 s^3 + 1.074 s^2 - 0.04904 s + 0.0008957
+  ------------------------------------------------------
+  2982 s^4 + 327.8 s^3 + 15.03 s^2 + 0.2776 s + 9.14e-05
+ 
+连续时间传递函数。
+</pre>
+<h2 id="4">=== 3. 模型与原始数据对比 ===</h2>
+<pre class="codeinput">[y_model, t_model] = step(G_total * u_step, time);
+y_model = y_model + T0;
+
+figure;
+plot(time, temp, <span class="string">'b'</span>, <span class="string">'DisplayName'</span>, <span class="string">'原始温度'</span>);
+hold <span class="string">on</span>;
+plot(t_model, y_model, <span class="string">'r--'</span>, <span class="string">'DisplayName'</span>, <span class="string">'模型输出'</span>);
+xlabel(<span class="string">'时间 (s)'</span>); ylabel(<span class="string">'温度 (&deg;C)'</span>);
+title(<span class="string">'系统辨识对比'</span>);
+legend; grid <span class="string">on</span>;
+
+temp_interp = interp1(time, temp, t_model);
+SS_res = sum((temp_interp - y_model).^2);
+SS_tot = sum((temp_interp - mean(temp_interp)).^2);
+R2 = 1 - SS_res / SS_tot;
+fprintf(<span class="string">'\n拟合优度 R&sup2; = %.4f\n'</span>, R2);
+</pre>
+<pre class="codeoutput">
+拟合优度 R&sup2; = 0.9947
+</pre>
+<img vspace="5" hspace="5" src="PTES1T_01.png" alt=""> <h2 id="5">=== 4. 粒子群优化PID参数 ===</h2>
+<pre class="codeinput">target_temp = 35;
+room_temp = 16.8;  <span class="comment">% 外部扰动</span>
+tspan = 0:1:600;
+
+<span class="comment">% 粒子群优化目标函数</span>
+cost_func = @(x) pid_fitness_modified(x, G_total, target_temp, tspan, room_temp);
+
+lb = [0 0 0];
+ub = [10 0.1 1000];
+opts = optimoptions(<span class="string">'particleswarm'</span>, <span class="string">'Display'</span>, <span class="string">'iter'</span>, <span class="keyword">...</span>
+    <span class="string">'SwarmSize'</span>, 50, <span class="string">'MaxIterations'</span>, 80);
+
+[x_opt, fval] = particleswarm(cost_func, 3, lb, ub, opts);
+Kp = x_opt(1); Ki = x_opt(2); Kd = x_opt(3);
+fprintf(<span class="string">'\n最优 PID 参数: Kp=%.4f, Ki=%.5f, Kd=%.4f\n'</span>, Kp, Ki, Kd);
+</pre>
+<img vspace="5" hspace="5" src="PTES1T_02.png" alt=""> <h2 id="6">=== 5. 闭环仿真（扰动在输出叠加） ===</h2>
+<pre class="codeinput">PID = pid(Kp, Ki, Kd);
+<span class="comment">% 定义扰动系统结构：扰动加在控制对象之后（输出端）</span>
+<span class="comment">% u --&gt; PID --&gt; G_total --&gt; +16.8 --&gt; 反馈</span>
+G_disturbed = G_total;
+sys_open = PID * G_disturbed;
+
+<span class="comment">% 构建完整的闭环系统，扰动加在反馈通道之前</span>
+sys_cl = feedback(sys_open, 1);  <span class="comment">% unity feedback</span>
+[y_out, t_out] = step(sys_cl * (target_temp - room_temp), tspan);
+y_out = y_out + room_temp;  <span class="comment">% 输出中叠加扰动</span>
+
+figure;
+plot(t_out, y_out, <span class="string">'b'</span>, <span class="string">'LineWidth'</span>, 1.5); hold <span class="string">on</span>;
+yline(target_temp, <span class="string">'--r'</span>, <span class="string">'目标温度'</span>);
+xlabel(<span class="string">'时间 (s)'</span>); ylabel(<span class="string">'温度 (&deg;C)'</span>);
+title(<span class="string">'优化后闭环响应（含扰动16.8&deg;C）'</span>);
+legend(<span class="string">'系统输出'</span>, <span class="string">'目标温度'</span>);
+grid <span class="string">on</span>;
+</pre>
+<img vspace="5" hspace="5" src="PTES1T_03.png" alt=""> <h2 id="7">=== 6. 输出动态性能指标 ===</h2>
+<pre class="codeinput">S = stepinfo(y_out, t_out, target_temp);
+fprintf(<span class="string">'\n=== 校正后闭环性能指标 ===\n'</span>);
+fprintf(<span class="string">'超调量 (Overshoot): %.2f%%\n'</span>, S.Overshoot);
+fprintf(<span class="string">'调节时间 (SettlingTime): %.2f 秒\n'</span>, S.SettlingTime);
+fprintf(<span class="string">'上升时间 (RiseTime): %.2f 秒\n'</span>, S.RiseTime);
+fprintf(<span class="string">'峰值时间 (PeakTime): %.2f 秒\n'</span>, S.PeakTime);
+fprintf(<span class="string">'稳态值 (Steady-State Value): %.2f &deg;C\n'</span>, y_out(end));
+</pre>
+<pre class="codeoutput">
+=== 校正后闭环性能指标 ===
+超调量 (Overshoot): 2.00%
+调节时间 (SettlingTime): 202.17 秒
+上升时间 (RiseTime): 172.82 秒
+峰值时间 (PeakTime): 250.00 秒
+稳态值 (Steady-State Value): 35.17 &deg;C
+</pre>
+<h2 id="8">=== 辅助函数 ===</h2>
+<p>function cost = pid_fitness_modified(x, G, target, tspan, disturb) Kp = x(1); Ki = x(2); Kd = x(3); PID = pid(Kp, Ki, Kd); sys_open = PID * G; sys_cl = feedback(sys_open, 1); [y, t] = step(sys_cl * (target - disturb), tspan); y = y + disturb;</p>
+<pre>   % 计算性能指标
+   overshoot = max(y) - target;
+   steady_error = abs(y(end) - target);
+   rise_time_idx = find(y &gt;= 0.9 * target, 1);
+   if isempty(rise_time_idx)
+       rise_time = t(end);
+   else
+       rise_time = t(rise_time_idx);
+   end</pre>
+<pre>   % 加权目标函数
+   cost = 10 * steady_error + 5 * abs(overshoot) + rise_time / 100;
+end</pre>
+<pre class="codeinput">
+<span class="keyword">function</span> cost = pid_fitness_modified(x, G, target, tspan, disturb)
+    Kp = x(1); Ki = x(2); Kd = x(3);
+    PID = pid(Kp, Ki, Kd);
+    sys_open = PID * G;
+    sys_cl = feedback(sys_open, 1);
+    [y, t] = step(sys_cl * (target - disturb), tspan);
+    y = y + disturb;
+
+    <span class="comment">% 计算性能指标</span>
+    overshoot = max(y) - target;
+    steady_error = abs(y(end) - target);
+
+    <span class="comment">% 调节时间计算，取stepinfo</span>
+    S = stepinfo(y, t, target);
+    settling_time = S.SettlingTime;
+    <span class="keyword">if</span> isnan(settling_time) || settling_time &gt; t(end)
+        settling_time = t(end);
+    <span class="keyword">end</span>
+
+    rise_time = S.RiseTime;
+    <span class="keyword">if</span> isnan(rise_time) || rise_time &gt; t(end)
+        rise_time = t(end);
+    <span class="keyword">end</span>
+
+    <span class="comment">% 目标函数加权（提高调节时间权重，降低rise_time权重）</span>
+    cost = 100 * steady_error + 20 * abs(overshoot) + 0.5 * rise_time + 10 * settling_time;
+<span class="keyword">end</span>
+</pre>
+<pre class="codeoutput">
+                                 Best            Mean     Stall
+Iteration     f-count            f(x)            f(x)    Iterations
+    0              50            8097             NaN        0
+    1             100            6521             Inf        0
+    2             150            6356             Inf        0
+    3             200            5134             Inf        0
+    4             250            5134             Inf        1
+    5             300            4913             Inf        0
+    6             350            4913             Inf        1
+    7             400            4303             Inf        0
+    8             450            4303             Inf        1
+    9             500            4151             Inf        0
+   10             550            4151             Inf        1
+   11             600            3466             Inf        0
+   12             650            3466             Inf        1
+   13             700            3466             Inf        2
+   14             750            3466             Inf        3
+   15             800            3026             Inf        0
+   16             850            3026      3.042e+171        1
+   17             900            3026      1.913e+220        2
+   18             950            3026             Inf        3
+   19            1000            3026             Inf        4
+   20            1050            2989            6530        0
+   21            1100            2989      2.209e+149        1
+   22            1150            2569            6725        0
+   23            1200            2387             Inf        0
+   24            1250            2387            5129        1
+   25            1300            2387            4478        2
+   26            1350            2289            4010        0
+   27            1400            2239            3654        0
+   28            1450            2239            3343        1
+   29            1500            2171            3167        0
+   30            1550            2169            3193        0
+
+                                 Best            Mean     Stall
+Iteration     f-count            f(x)            f(x)    Iterations
+   31            1600            2166            2926        0
+   32            1650            2160            3336        0
+   33            1700            2160            3207        1
+   34            1750            2157            3073        0
+   35            1800            2149            2827        0
+   36            1850            2149      1.051e+141        1
+   37            1900            2149            3369        2
+   38            1950            2149            3881        3
+   39            2000            2146      1.144e+160        0
+   40            2050            2146      2.641e+161        1
+   41            2100            2146            3746        2
+   42            2150            2146            4188        3
+   43            2200            2146      1.166e+110        4
+   44            2250            2146             Inf        5
+   45            2300            2146            3574        6
+   46            2350            2146            3614        7
+   47            2400            2146            3192        8
+   48            2450            2146            2796        9
+   49            2500            2145            3059        0
+   50            2550            2144             Inf        0
+   51            2600            2144            3160        1
+   52            2650            2144            3003        0
+   53            2700            2139            3082        0
+   54            2750            2139            3055        1
+   55            2800            2139            3037        2
+   56            2850            2139            3576        3
+   57            2900            2139            3191        4
+   58            2950            2139            2994        5
+   59            3000            2139            3244        6
+   60            3050            2139            3670        7
+
+                                 Best            Mean     Stall
+Iteration     f-count            f(x)            f(x)    Iterations
+   61            3100            2139      1.313e+195        0
+   62            3150            2139            3206        1
+   63            3200            2139            3118        0
+   64            3250            2139            3111        1
+   65            3300            2139            2915        0
+   66            3350            2139            3040        1
+   67            3400            2139            3075        2
+   68            3450            2139            3164        0
+   69            3500            2139            3120        0
+   70            3550            2139            3137        0
+   71            3600            2139            2923        0
+   72            3650            2139            3072        0
+   73            3700            2139            3175        0
+   74            3750            2139            3129        0
+   75            3800            2139            2999        0
+   76            3850            2139            2893        0
+   77            3900            2139      1.024e+248        0
+   78            3950            2139             Inf        0
+   79            4000            2139            3749        0
+   80            4050            2139            3249        0
+Optimization ended: number of iterations exceeded OPTIONS.MaxIterations.
+
+最优 PID 参数: Kp=2.1367, Ki=0.00084, Kd=103.8518
+</pre>
+<p class="footer">
+<br>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2024b</a>
+<br>
+</p>
+</div>
+<!--
+##### SOURCE BEGIN #####
+clc; clear;
+
+%% === 1. 读取CSV数据 ===
+data = readtable('B.csv'); % 如果列名不正确，可使用 'VariableNames' 参数指定
+
+% 查看表格变量名，确认是否存在 'time' 列
+disp(data.Properties.VariableNames);
+
+% 如果列名正确，提取时间数据和温度数据
+if ismember('time', data.Properties.VariableNames) && ismember('temperature', data.Properties.VariableNames)
+    time = data.time;
+    temp = data.temperature;
+else
+    error('表格中不存在预期的列名 "time" 或 "temperature"。请检查 CSV 文件内容。');
+end
+
+%% === 2. 系统辨识 ===
+u_step = 3.5;
+T0 = mean(temp(1:100));
+T_inf = mean(temp(end-50:end));
+K = (T_inf - T0) / u_step;
+
+T_63 = T0 + 0.632 * (T_inf - T0);
+idx_T = find(temp >= T_63, 1);
+idx_L = find(temp > T0 + 0.5, 1);
+T = time(idx_T) - time(idx_L);
+L = time(idx_L);
+
+G = tf(K, [T 1]);
+G_delay = pade(tf(1,1,'InputDelay',L), 3);  % 更高阶Pade近似（3阶）
+G_total = G * G_delay;
+
+disp('一阶惯性+延迟系统辨识结果（3阶 Pade）：');
+G_total
+
+%% === 3. 模型与原始数据对比 ===
+[y_model, t_model] = step(G_total * u_step, time);
+y_model = y_model + T0;
+
+figure;
+plot(time, temp, 'b', 'DisplayName', '原始温度');
+hold on;
+plot(t_model, y_model, 'rREPLACE_WITH_DASH_DASH', 'DisplayName', '模型输出');
+xlabel('时间 (s)'); ylabel('温度 (°C)');
+title('系统辨识对比');
+legend; grid on;
+
+temp_interp = interp1(time, temp, t_model);
+SS_res = sum((temp_interp - y_model).^2);
+SS_tot = sum((temp_interp - mean(temp_interp)).^2);
+R2 = 1 - SS_res / SS_tot;
+fprintf('\n拟合优度 R² = %.4f\n', R2);
+
+%% === 4. 粒子群优化PID参数 ===
+target_temp = 35;
+room_temp = 16.8;  % 外部扰动
+tspan = 0:1:600;
+
+% 粒子群优化目标函数
+cost_func = @(x) pid_fitness_modified(x, G_total, target_temp, tspan, room_temp);
+
+lb = [0 0 0];
+ub = [10 0.1 1000];
+opts = optimoptions('particleswarm', 'Display', 'iter', ...
+    'SwarmSize', 50, 'MaxIterations', 80);
+
+[x_opt, fval] = particleswarm(cost_func, 3, lb, ub, opts);
+Kp = x_opt(1); Ki = x_opt(2); Kd = x_opt(3);
+fprintf('\n最优 PID 参数: Kp=%.4f, Ki=%.5f, Kd=%.4f\n', Kp, Ki, Kd);
+
+%% === 5. 闭环仿真（扰动在输出叠加） ===
+PID = pid(Kp, Ki, Kd);
+% 定义扰动系统结构：扰动加在控制对象之后（输出端）
+% u REPLACE_WITH_DASH_DASH> PID REPLACE_WITH_DASH_DASH> G_total REPLACE_WITH_DASH_DASH> +16.8 REPLACE_WITH_DASH_DASH> 反馈
+G_disturbed = G_total;
+sys_open = PID * G_disturbed;
+
+% 构建完整的闭环系统，扰动加在反馈通道之前
+sys_cl = feedback(sys_open, 1);  % unity feedback
+[y_out, t_out] = step(sys_cl * (target_temp - room_temp), tspan);
+y_out = y_out + room_temp;  % 输出中叠加扰动
+
+figure;
+plot(t_out, y_out, 'b', 'LineWidth', 1.5); hold on;
+yline(target_temp, 'REPLACE_WITH_DASH_DASHr', '目标温度');
+xlabel('时间 (s)'); ylabel('温度 (°C)');
+title('优化后闭环响应（含扰动16.8°C）');
+legend('系统输出', '目标温度');
+grid on;
+
+%% === 6. 输出动态性能指标 ===
+S = stepinfo(y_out, t_out, target_temp);
+fprintf('\n=== 校正后闭环性能指标 ===\n');
+fprintf('超调量 (Overshoot): %.2f%%\n', S.Overshoot);
+fprintf('调节时间 (SettlingTime): %.2f 秒\n', S.SettlingTime);
+fprintf('上升时间 (RiseTime): %.2f 秒\n', S.RiseTime);
+fprintf('峰值时间 (PeakTime): %.2f 秒\n', S.PeakTime);
+fprintf('稳态值 (Steady-State Value): %.2f °C\n', y_out(end));
+
+%% === 辅助函数 ===
+% function cost = pid_fitness_modified(x, G, target, tspan, disturb)
+%     Kp = x(1); Ki = x(2); Kd = x(3);
+%     PID = pid(Kp, Ki, Kd);
+%     sys_open = PID * G;
+%     sys_cl = feedback(sys_open, 1);
+%     [y, t] = step(sys_cl * (target - disturb), tspan);
+%     y = y + disturb;
+% 
+%     % 计算性能指标
+%     overshoot = max(y) - target;
+%     steady_error = abs(y(end) - target);
+%     rise_time_idx = find(y >= 0.9 * target, 1);
+%     if isempty(rise_time_idx)
+%         rise_time = t(end);
+%     else
+%         rise_time = t(rise_time_idx);
+%     end
+% 
+%     % 加权目标函数
+%     cost = 10 * steady_error + 5 * abs(overshoot) + rise_time / 100;
+% end
+function cost = pid_fitness_modified(x, G, target, tspan, disturb)
+    Kp = x(1); Ki = x(2); Kd = x(3);
+    PID = pid(Kp, Ki, Kd);
+    sys_open = PID * G;
+    sys_cl = feedback(sys_open, 1);
+    [y, t] = step(sys_cl * (target - disturb), tspan);
+    y = y + disturb;
+
+    % 计算性能指标
+    overshoot = max(y) - target;
+    steady_error = abs(y(end) - target);
+    
+    % 调节时间计算，取stepinfo
+    S = stepinfo(y, t, target);
+    settling_time = S.SettlingTime;  
+    if isnan(settling_time) || settling_time > t(end)
+        settling_time = t(end);
+    end
+    
+    rise_time = S.RiseTime;
+    if isnan(rise_time) || rise_time > t(end)
+        rise_time = t(end);
+    end
+
+    % 目标函数加权（提高调节时间权重，降低rise_time权重）
+    cost = 100 * steady_error + 20 * abs(overshoot) + 0.5 * rise_time + 10 * settling_time;
+end
+
+
+##### SOURCE END #####
+-->
+</body>
+</html>
